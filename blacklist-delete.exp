@@ -1,6 +1,6 @@
 #!/usr/bin/env expect
 # jmanuta@bluip.com | 2018.02.01
-# Note:         Do not run directly; use the bash script of the same name.
+# Note:         Do not run directly; use the bash script.
 # Description:  This expect script will delete the specified ip address to
 #               the XSP blacklist.
 

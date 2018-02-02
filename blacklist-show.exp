@@ -1,8 +1,7 @@
 #!/usr/bin/env expect
 # jmanuta@bluip.com | 2018.02.01
-# Note:         Do not run directly; use the bash script of the same name.
-# Description:  This expect script will add the specified ip address to
-#               the XSP blacklist.
+# Note:         Do not run directly; use the bash script.
+# Description:  This expect script will show the current XSP blacklist.
 
 
 # Set command line argument
