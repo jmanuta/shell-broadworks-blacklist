@@ -1,0 +1,24 @@
+#!/usr/bin/env expect
+# jmanuta@bluip.com | 2018.02.01
+# Note:         Do not run directly; use the bash script of the same name.
+# Description:  This expect script will add the specified ip address to
+#               the XSP blacklist.
+
+
+# Set command line argument
+set blockip [lindex $argv 0]
+set serverip [lindex $argv 1]
+
+# Start bwcli
+spawn bwcli
+
+# Add blacklist entry
+expect "XSP_CLI>"
+send "sys;sec;black;get\r"
+
+# Exit bwcli
+expect "XSP_CLI/System/Security/BlackList> "
+send "exit\r"
+expect "Please confirm (Yes, Y, No, N): "
+send "Y\r"
+
