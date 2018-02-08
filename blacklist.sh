@@ -15,14 +15,14 @@ blockIp=$2
 # Display usage
 usage() {
 	if [ -z "$1" ]; then
-    		(
-    		echo -e "\nDescription:\tAdd or delete a blacklist IP or show current list"
-    		echo -e "Usage:\t\t$(basename $0) [option] [ip-address]"
-		echo -e "Options:\tadd \tAdd an IP to blacklist"
+    	(
+    	echo -e "\nDescription:\tAdd or delete a blacklist IP or show current list"
+   		echo -e "Usage:\t\t$(basename $0) [option] [ip-address]"
+	    echo -e "Options:\tadd \tAdd an IP to blacklist"
 		echo -e "\t\tdelete \tDelete an IP from blacklist"
 		echo -e "\t\tshow \tShow current blacklist\n"
-    		) 1>&2
-    		exit
+    	) 1>&2
+    	exit
 	fi
 }
 
@@ -31,48 +31,84 @@ usage() {
 action() {
 	if [ "$1" = "add" ]; then
 		shift
-    		expectOutput=$(${scriptPath}/blacklist-add.exp $1 ${serverIp})
-    		if [[ $expectOutput = *"...Done"* ]]; then
-        		echo -e "\nSuccessful\n"
-                        echo -e "$(date) -- ADD\n" >> ${logFile}
-                        echo "$expectOutput" >> ${logFile}
-                        echo -e "\n\n" >> ${logFile}
-    		elif [[ $expectOutput = *"entry is already present in list"* ]]; then
-        		echo -e "\n$1 was already added\n"
-    		else
-        		echo -e "$(date) -- ADD\n" >> ${logFile} 
-        		echo "$expectOutput" >> ${logFile}
-        		echo -e "\n\n" >> ${logFile}
-        		echo -e "\nEncountered error\n"
-    		fi
+    	expectOutput=$(/usr/bin/expect <<____________EOD
+            spawn sudo -u bworks /usr/local/broadworks/bw_base/bin/bwcli
+            send "\r"
+            expect "XSP_CLI>*"
+            send "sys;sec;black;add $1 255.255.255.255 $serverIp 0 65535 TCP\r"
+            expect "XSP_CLI/System/Security/BlackList>*"
+            send "exit\r"
+            expect "Please confirm (Yes, Y, No, N):*"
+            send "Y\r"
+            expect EOF
+            exit
+____________EOD
+        )
+    	if [[ $expectOutput = *"...Done"* ]]; then
+       		echo -e "\nSuccessful\n"
+            echo -e "$(date) -- ADD\n" >> ${logFile}
+            echo "$expectOutput" >> ${logFile}
+            echo -e "\n\n" >> ${logFile}
+    	elif [[ $expectOutput = *"entry is already present in list"* ]]; then
+        	echo -e "\n$1 was already added\n"
+    	else
+        	echo -e "$(date) -- ADD\n" >> ${logFile} 
+        	echo "$expectOutput" >> ${logFile}
+        	echo -e "\n\n" >> ${logFile}
+        	echo -e "\nEncountered error\n"
+        fi
+
 	elif [ "$1" = "show" ]; then
-		expectOutput=$(${scriptPath}/blacklist-show.exp)
+		expectOutput=$(/usr/bin/expect <<____________EOD
+            spawn sudo -u bworks /usr/local/broadworks/bw_base/bin/bwcli
+            expect "XSP_CLI>*"
+            send "sys;sec;black;get\r"
+            expect "XSP_CLI/System/Security/BlackList>*"
+            send "exit\r"
+            expect "Please confirm (Yes, Y, No, N):*"
+            send "Y\r"
+            expect EOF
+            exit
+____________EOD
+        )
 		if [[ $expectOutput = *"TCP"* ]]; then
 			echo
-        		printf "%32s %14s %10s\n" "Source IP/Mask" "Port Range" "Protocol"
-                	echo "==========================================================="
-    			echo -e "\n${expectOutput}\n" |\
-    			grep TCP |\
-    			awk '{printf "%32s %14s %10s\n", $1, $3, $4}'
+        	printf "%32s %14s %10s\n" "Source IP/Mask" "Port Range" "Protocol"
+            echo "==========================================================="
+    		echo -e "\n${expectOutput}\n" |\
+    		grep TCP |\
+    		awk '{printf "%32s %14s %10s\n", $1, $3, $4}'
 			echo
-    		else
-        		echo -e "\nNo entries found\n"
-    		fi
-        elif [ "$1" = "delete" ]; then
+    	else
+        	echo -e "\nNo entries found\n"
+    	fi
+
+    elif [ "$1" = "delete" ]; then
 		shift
-                expectOutput=$(${scriptPath}/blacklist-delete.exp $1 ${serverIp})
-                if [[ $expectOutput = *"...Done"* ]]; then
-                        echo -e "\nSuccessful\n"
-                        echo -e "$(date) -- DELETE\n" >> ${logFile}
-                        echo "$expectOutput" >> ${logFile}
-                        echo -e "\n\n" >> ${logFile}
+        expectOutput=$(/usr/bin/expect <<____________EOD
+            spawn /usr/local/broadworks/bw_base/bin/bwcli
+            expect "XSP_CLI>"
+            send "sys;sec;black;delete $1 255.255.255.255 $serverIp 0 65535 TCP\r"
+            expect "XSP_CLI/System/Security/BlackList> "
+            send "exit\r"
+            expect "Please confirm (Yes, Y, No, N): "
+            send "Y\r"
+            expect EOF
+            exit
+____________EOD
+        ) 
+        if [[ $expectOutput = *"...Done"* ]]; then
+            echo -e "\nSuccessful\n"
+            echo -e "$(date) -- DELETE\n" >> ${logFile}
+            echo "$expectOutput" >> ${logFile}
+            echo -e "\n\n" >> ${logFile}
 		elif [[ $expectOutput = *"Entry not found"* ]]; then
 			echo -e "\nError: $1 was not found in blacklist\n"
-                else
-                        echo -e "$(date) -- DELETE\n" >> ${logFile}
-                        echo "$expectOutput" >> ${logFile}
-                        echo -e "\n\n" >> ${logFile}
-                        echo -e "\nEncountered error\n"
+        else
+            echo -e "$(date) -- DELETE\n" >> ${logFile}
+            echo "$expectOutput" >> ${logFile}
+            echo -e "\n\n" >> ${logFile}
+            echo -e "\nEncountered error\n"
 		fi
 	else
 		echo -e "\n% Invalid option %"
