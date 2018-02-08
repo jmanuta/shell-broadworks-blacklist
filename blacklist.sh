@@ -16,11 +16,11 @@ blockIp=$2
 usage() {
 	if [ -z "$1" ]; then
 		(
-		echo -e "\nDescription:\tAdd or delete a blacklist IP or show current list"
-		echo -e "Usage:\t\t$(basename $0) [option] [ip-address]"
-		echo -e "Options:\tadd \tAdd an IP to blacklist"
-		echo -e "\t\tdelete \tDelete an IP from blacklist"
-		echo -e "\t\tshow \tShow current blacklist\n"
+		echo -e "\nDescription:\tAdd IP, delete IP, or show XSP blacklist"
+		echo -e "Usage:\t\t$(basename $0) <command> [ip-address]"
+		echo -e "Commands:\tadd \t- Add an IP to blacklist"
+		echo -e "\t\tdelete \t- Delete an IP from blacklist"
+		echo -e "\t\tshow \t- Show current blacklist\n"
 		) 1>&2
 		exit
 	fi
