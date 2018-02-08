@@ -31,7 +31,7 @@ usage() {
 action() {
 	if [ "$1" = "add" ]; then
 		shift
-		expectOutput=$(/usr/bin/expect <<________________EOD
+		expectOutput=$(/usr/bin/expect <<- EOD
 			spawn sudo -u bworks /usr/local/broadworks/bw_base/bin/bwcli
 			send "\r"
 			expect "XSP_CLI>*"
@@ -42,7 +42,7 @@ action() {
 			send "Y\r"
 			expect EOF
 			exit
-________________EOD
+			EOD
 		)
 		if [[ $expectOutput = *"...Done"* ]]; then
 			echo -e "\nSuccessful\n"
@@ -59,7 +59,7 @@ ________________EOD
 		fi
 
 	elif [ "$1" = "show" ]; then
-		expectOutput=$(/usr/bin/expect <<________________EOD
+		expectOutput=$(/usr/bin/expect <<- EOD
 			spawn sudo -u bworks /usr/local/broadworks/bw_base/bin/bwcli
 			expect "XSP_CLI>*"
 			send "sys;sec;black;get\r"
@@ -69,7 +69,7 @@ ________________EOD
 			send "Y\r"
 			expect EOF
 			exit
-________________EOD
+			EOD
 		)
 		if [[ $expectOutput = *"TCP"* ]]; then
 			echo
@@ -85,7 +85,7 @@ ________________EOD
 
 	elif [ "$1" = "delete" ]; then
 		shift
-		expectOutput=$(/usr/bin/expect <<________________EOD
+		expectOutput=$(/usr/bin/expect <<- EOD
 			spawn /usr/local/broadworks/bw_base/bin/bwcli
 			expect "XSP_CLI>"
 			send "sys;sec;black;delete $1 255.255.255.255 $serverIp 0 65535 TCP\r"
@@ -95,7 +95,7 @@ ________________EOD
 			send "Y\r"
 			expect EOF
 			exit
-________________EOD
+			EOD
 		) 
 		if [[ $expectOutput = *"...Done"* ]]; then
 			echo -e "\nSuccessful\n"
